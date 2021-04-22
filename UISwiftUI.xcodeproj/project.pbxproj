@@ -11,6 +11,7 @@
 		402526EE263017BF00C00DB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402526ED263017BF00C00DB4 /* ContentView.swift */; };
 		402526F0263017C000C00DB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 402526EF263017C000C00DB4 /* Assets.xcassets */; };
 		402526F3263017C000C00DB4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 402526F2263017C000C00DB4 /* Preview Assets.xcassets */; };
+		40252700263018CC00C00DB4 /* iStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402526FF263018CC00C00DB4 /* iStoreView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		402526EF263017C000C00DB4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		402526F2263017C000C00DB4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		402526F4263017C000C00DB4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		402526FF263018CC00C00DB4 /* iStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iStoreView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 			children = (
 				402526EB263017BF00C00DB4 /* UISwiftUIApp.swift */,
 				402526ED263017BF00C00DB4 /* ContentView.swift */,
+				402526FF263018CC00C00DB4 /* iStoreView.swift */,
 				402526EF263017C000C00DB4 /* Assets.xcassets */,
 				402526F4263017C000C00DB4 /* Info.plist */,
 				402526F1263017C000C00DB4 /* Preview Content */,
@@ -139,6 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				402526EE263017BF00C00DB4 /* ContentView.swift in Sources */,
+				40252700263018CC00C00DB4 /* iStoreView.swift in Sources */,
 				402526EC263017BF00C00DB4 /* UISwiftUIApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
