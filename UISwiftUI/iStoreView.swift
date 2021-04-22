@@ -8,6 +8,46 @@
 import SwiftUI
 
 struct iStoreView: View {
+    
+    var body: some View {
+        TabView {
+            HomeView()
+                .tabItem {
+                    Image(systemName: "house")
+                    Text("Home")
+                }
+            
+            CartView()
+                .tabItem {
+                    Image(systemName: "cart")
+                    Text("Cart")
+                }
+            
+            ProfileView()
+                .tabItem {
+                    Image(systemName: "person")
+                    Text("Account")
+                }
+        }.accentColor(.primary)
+    }
+    
+    
+}
+
+
+
+struct iStore_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            iStoreView()
+            CartView()
+            CheckoutView()
+        }
+    }
+}
+
+
+fileprivate struct HomeView: View {
     @State private var search = ""
     @State private var isProfileShown = false
     @State private var isFavorite = false
@@ -53,24 +93,10 @@ struct iStoreView: View {
             
         }
     }
-    
-    
 }
 
 
-
-struct iStore_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            iStoreView()
-            CartView()
-        }
-    }
-}
-
-
-
-struct ProfileView: View {
+fileprivate struct ProfileView: View {
     var background: LinearGradient {
         return LinearGradient(gradient: Gradient(colors: [Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1)), Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1))]), startPoint: .leading, endPoint: .trailing)
     }
@@ -93,7 +119,7 @@ struct ProfileView: View {
                     VStack(spacing: 5) {
                         Text("Sheikh Bayazid")
                             .font(.title2)
-                        Text("Address: 123, ABCD Avenue, ABCD, 00-11-22")
+                        Text("Address: 123, ABC Avenue, ABC , 00-11-22")
                             .font(.footnote)
                             .foregroundColor(.gray)
                     }
@@ -238,7 +264,8 @@ fileprivate struct QuickSearchView: View {
             HStack(spacing: 5) {
                 QuickSearchItemView(emoji: "📣", title: "Popular")
                 QuickSearchItemView(emoji: "🔥", title: "Top Rated")
-                QuickSearchItemView(emoji: "💯", title: "Offers")
+                QuickSearchItemView(emoji: "📱", title: "Phone")
+                QuickSearchItemView(emoji: "👟", title: "Sneakers")
                 QuickSearchItemView(emoji: "🚙", title: "Cars")
                 QuickSearchItemView(emoji: "⌚️", title: "Accessories")
             }.padding(.horizontal)
@@ -446,10 +473,11 @@ fileprivate struct ProductDetailsView: View {
 
 
 //MARK: - CartView
-struct CartView: View {
+fileprivate struct CartView: View {
     fileprivate let products:[Product] = Product.cart
     @State private var totalPrice = 0
     @State private var isProductDetailsShown = false
+    @State private var isCheckoutShown = false
     
     var background: LinearGradient {
         return LinearGradient(gradient: Gradient(colors: [Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1)), Color(#colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)), Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1))]), startPoint: .leading, endPoint: .trailing)
@@ -493,7 +521,9 @@ struct CartView: View {
                         
                         Spacer()
                         
-                        Button(action: {}, label: {
+                        Button(action: {
+                            self.isCheckoutShown.toggle()
+                        }, label: {
                             Text("Check Out")
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundColor(.white)
@@ -502,7 +532,9 @@ struct CartView: View {
                                 .background(Color.blue)
                                 .clipShape(Capsule())
                                 .shadow(radius: 2, y: 1)
-                        })
+                        }).sheet(isPresented: $isCheckoutShown) {
+                            CheckoutView()
+                        }
                     }.padding(.horizontal, 30)
                     .padding(.vertical, 12)
                     .background(Color.secondary.opacity(0.1))
@@ -511,7 +543,6 @@ struct CartView: View {
         }
     }
 }
-
 
 
 
@@ -525,7 +556,7 @@ fileprivate struct CartItemView: View {
                 Image(product.image)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 50 , height: 50)
+                    .frame(width: 40 , height: 40)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.name)
                         .font(.system(size: 12, weight: .semibold))
@@ -566,9 +597,144 @@ fileprivate struct CartItemView: View {
                 .padding(.horizontal)
                 
             }
-            .frame(width: 350 , height: 50)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 10))        }
+            .frame(width: 350 , height: 45)
+            .background(Color.gray.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 5))        }
+    }
+}
+
+fileprivate struct CheckoutView: View {
+    @Environment(\.presentationMode) var presentationMode
+    
+    @State private var isTapped = false
+    @State private var addressLine = ""
+    @State private var city = ""
+    @State private var postalCode = ""
+    
+    var background: LinearGradient {
+        return LinearGradient(gradient: Gradient(colors: [Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1)), Color(#colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)), Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1))]), startPoint: .leading, endPoint: .trailing)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                background.ignoresSafeArea()
+                
+                VStack(alignment: .leading, spacing: 30) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Biling Address:")
+                            .font(.headline)
+                        
+                        VStack(alignment: .leading, spacing: 5) {
+                            TextField("Address", text: $addressLine)
+                                .padding(5)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                            
+                            TextField("City", text: $city)
+                                .padding(5)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                            
+                            TextField("Postal Code", text: $postalCode)
+                                .padding(5)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                            
+                            HStack {
+                                Button(action: {
+                                    withAnimation {
+                                        self.isTapped.toggle()
+                                        
+                                        if isTapped {
+                                            self.addressLine = "123, ABC Avenue"
+                                            self.city = "ABC"
+                                            self.postalCode = "00-11-22"
+                                        } else {
+                                            self.addressLine = ""
+                                            self.city = ""
+                                            self.postalCode = ""
+                                        }
+                                    }
+                                    
+                                }, label: {
+                                    Image(systemName: isTapped ? "checkmark.circle" : "circle")
+                                        .font(.title3)
+                                        .foregroundColor(.primary)
+                                })
+                                
+                                Text("Account Address")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.gray)
+                            }.padding(.vertical, 10)
+                            .font(.footnote)
+                        }
+                        
+                    }
+                    
+                    
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Contact:")
+                            .font(.headline)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Phone: +8801710000000")
+                            Text("Email: johnappleseed@apple.com")
+                        }
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        Text("Summary:")
+                            .font(.headline)
+                        
+                        VStack(spacing: 4) {
+                            ForEach(Product.cart) { product in
+                                CartItemView(product: product)
+                                
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                }.padding(.top, 20)
+                .padding(.horizontal)
+                
+                VStack {
+                    Rectangle()
+                        .fill(Color.clear)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("Total: ")
+                                Text("৳ 1,45000")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            Text("VAT and SD included")
+                                .font(.footnote)
+                                .foregroundColor(.gray)
+                           
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: { }, label: {
+                            Text("Proceed to Pay")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.blue)
+                                .clipShape(Capsule())
+                                .shadow(radius: 2, y: 1)
+                        })
+                    }.padding(.horizontal, 15)
+                    .padding(.vertical, 10)
+                    .background(Color.pink.opacity(0.05))
+                    .cornerRadius(10)
+                }.padding(.horizontal)
+            }
+            .navigationBarTitle("Checkout")
+            .navigationBarItems(trailing: Button("Cancel") { self.presentationMode.wrappedValue.dismiss()}.foregroundColor(.primary) )
+        }
     }
 }
 
@@ -588,7 +754,8 @@ fileprivate struct Product: Identifiable {
         Product(image: "ipad-pro-21", name: "M1 iPad Pro", price: 1_10000, estimateShipping: "This Week", dayAndWeek: "W"),
         Product(image: "imac-21", name: "M1 iMac", price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
         Product(image: "airtag", name: "Airtags", price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W"),
-        Product(image: "iphone-12", name: "iPhone 12 Purple", price: 1_10000, estimateShipping: "Today", dayAndWeek: "D"),
+        Product(image: "iphone-12", name: "iPhone 12 Purple", price: 1_10000, estimateShipping: "Tomorrow", dayAndWeek: "D"),
+        Product(image: "yeezy-500", name: "Yeezy Boost 500", price: 27_000, estimateShipping: "Today", dayAndWeek: "D"),
         Product(image: "bmw", name: "BMW i8", price: 50_00000, estimateShipping: "Next Week", dayAndWeek: "W"),
         Product(image: "ps5", name: "PS5", price: 6_0000, estimateShipping: "Today", dayAndWeek: "D"),
         Product(image: "canon5d", name: "Canon EOS 5D Mark IV", price: 1_20000, estimateShipping: "Tomorrow", dayAndWeek: "W"),
@@ -598,8 +765,8 @@ fileprivate struct Product: Identifiable {
     
     static let favorites: [Product] = [
         Product(image: "iphone-12", name: "iPhone 12 Pro Max", price: 1_10000, estimateShipping: "Today", dayAndWeek: "D"),
-        Product(image: "ps5", name: "PS5", price: 6_0000, estimateShipping: "Today", dayAndWeek: "D,W"),
-        Product(image: "canon5d", name: "Canon EOS 5D Mark IV", price: 1_20000, estimateShipping: "Today", dayAndWeek: "W")
+        Product(image: "imac-21", name: "M1 iMac", price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "airtag", name: "Airtags", price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W")
     ]
     
     static let cart: [Product] = [
