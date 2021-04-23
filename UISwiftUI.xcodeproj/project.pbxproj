@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		401757F22632DCB70029123D /* iShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 401757F12632DCB70029123D /* iShopView.swift */; };
 		402526EC263017BF00C00DB4 /* UISwiftUIApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402526EB263017BF00C00DB4 /* UISwiftUIApp.swift */; };
 		402526EE263017BF00C00DB4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402526ED263017BF00C00DB4 /* ContentView.swift */; };
 		402526F0263017C000C00DB4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 402526EF263017C000C00DB4 /* Assets.xcassets */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		401757F12632DCB70029123D /* iShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iShopView.swift; sourceTree = "<group>"; };
 		402526E8263017BF00C00DB4 /* UISwiftUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UISwiftUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		402526EB263017BF00C00DB4 /* UISwiftUIApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISwiftUIApp.swift; sourceTree = "<group>"; };
 		402526ED263017BF00C00DB4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -57,6 +59,7 @@
 				402526EB263017BF00C00DB4 /* UISwiftUIApp.swift */,
 				402526ED263017BF00C00DB4 /* ContentView.swift */,
 				402526FF263018CC00C00DB4 /* iStoreView.swift */,
+				401757F12632DCB70029123D /* iShopView.swift */,
 				402526EF263017C000C00DB4 /* Assets.xcassets */,
 				402526F4263017C000C00DB4 /* Info.plist */,
 				402526F1263017C000C00DB4 /* Preview Content */,
@@ -141,6 +144,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				401757F22632DCB70029123D /* iShopView.swift in Sources */,
 				402526EE263017BF00C00DB4 /* ContentView.swift in Sources */,
 				40252700263018CC00C00DB4 /* iStoreView.swift in Sources */,
 				402526EC263017BF00C00DB4 /* UISwiftUIApp.swift in Sources */,
