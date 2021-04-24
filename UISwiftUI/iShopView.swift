@@ -8,20 +8,31 @@
 import SwiftUI
 
 struct iShopView: View {
-    
+    @State private var selectedItem: Product!
+    @State private var isActive = false
+    @Namespace var animation
     
     var body: some View {
-        VStack {
-            HeaderView()
+        ZStack {
+            VStack {
+                HeaderView()
+                
+                ProductView(selectedItem: $selectedItem, isActive: $isActive)
+            }
             
-            ProductView()
+            if isActive && selectedItem != nil  {
+                ItemDetailsView(product: $selectedItem, isActive: $isActive)
+            }
         }.ignoresSafeArea(.all, edges: .top)
     }
 }
 
 struct iShopView_Previews: PreviewProvider {
     static var previews: some View {
-        iShopView()
+        Group {
+            iShopView()
+            ItemDetailsView(product: .constant(Product.example[1]), isActive: .constant(false))
+        }
     }
 }
 
@@ -110,7 +121,9 @@ fileprivate struct TabButtonView: View {
 //MARK: - ProductView
 fileprivate struct ProductView: View {
     @State private var selectedTab = scrollTabs[0]
+    @Binding var selectedItem: Product!
     @Namespace var animation
+    @Binding var isActive: Bool
     
     var body: some View {
         ScrollView {
@@ -131,7 +144,7 @@ fileprivate struct ProductView: View {
                     }.padding(.horizontal)
                 }
                 
-                AllProductsView()
+                AllProductsView(selectedItem: $selectedItem, isActive: $isActive)
             }
         }
     }
@@ -146,12 +159,20 @@ fileprivate struct AllProductsView: View {
     ]
     
     let products = Product.example
+    @Binding var selectedItem: Product!
+    @Binding var isActive: Bool
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             LazyVGrid(columns: columns) {
                 ForEach(products) { product in
                     ItemView(product: product)
+                        .onTapGesture {
+                            //withAnimation(.spring()) {
+                            self.selectedItem = product
+                            self.isActive.toggle()
+                            //}
+                        }
                 }
             }.padding(.horizontal)
             
@@ -189,6 +210,180 @@ fileprivate struct ItemView: View {
         
         .background(Color.purple.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 15))
+    }
+}
+
+
+fileprivate struct ItemDetailsView: View {
+    @Binding var product: Product!
+    @Binding var isActive: Bool
+    //var animation: Namespace.ID
+    @State private var color = Color.green
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            
+            VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 5) {
+                    //MARK: - Navigation Bar
+                    HStack {
+                        Button(action: {
+                            self.isActive.toggle()
+                        }, label: {
+                            Image(systemName: "chevron.left")
+                        })
+                        
+                        
+                        
+                        Spacer()
+                        
+                        Button(action: {}, label: {
+                            Image(systemName: "cart")
+                        })
+                    }
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.primary)
+                    .padding()
+                    .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top)
+                    
+                    //MARK: - HeaderView
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(product.name)
+                            .fontWeight(.semibold)
+                            .padding(.top )
+                        
+                        Text(product.name)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                    }
+                    .padding(.horizontal)
+                    
+                    
+                    //MARK: - ImageView and Price
+                    HStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Price")
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            
+                            Text("$\(product.price)")
+                                .fontWeight(.heavy)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        Image(product.image)
+                            .resizable()
+                            .scaledToFit()
+                            .shadow(radius: 6, y: 3)
+                            .frame(width: 220, height: 220)
+                        //.matchedGeometryEffect(id: product.image, in: animation)
+                    }.padding(.horizontal)
+                    .padding(.top)
+                    
+                    
+                    VStack(alignment: .leading) {
+                        VStack(alignment: .leading) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Color")
+                                        .foregroundColor(.gray)
+                                    
+                                    HStack(spacing: 10) {
+                                        ColorButton(color: Color.green, selectedColor: $color)
+                                        ColorButton(color: Color.yellow, selectedColor: $color)
+                                        ColorButton(color: Color.purple, selectedColor: $color)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                VStack(spacing: 8) {
+                                    Text("Size")
+                                        .foregroundColor(.gray)
+                                    
+                                    
+                                    Text("12cm")
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            
+                            Text(product.description)
+                                .font(.callout)
+                                .foregroundColor(.gray)
+                                .padding(.top)
+                            
+                            HStack {
+                                HStack(spacing: 15) {
+                                    Image(systemName: "minus")
+                                        .frame(width: 30, height: 20)
+                                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 1))
+                                    
+                                     Text("2")
+                                    
+                                    Image(systemName: "plus")
+                                        .frame(width: 30, height: 20)
+                                        .overlay(RoundedRectangle(cornerRadius: 2).stroke(lineWidth: 1))
+                                    
+                                }
+                                
+                                Spacer()
+                                
+                                Circle().fill(Color.red).frame(width: 35, height: 35)
+                                    .overlay(Image(systemName: "heart.fill").foregroundColor(Color.white))
+                                
+                                
+                            }.padding(.top)
+                            .font(.title3)
+                            .foregroundColor(Color.black.opacity(0.75))
+                        }.padding(.horizontal)
+                        .padding(.top, 20)
+                        
+                        Button(action: {}, label: {
+                            Text("BUY NOW")
+                                .foregroundColor(.white)
+                        }).frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
+                        .background(Color.blue)
+                        .cornerRadius(15)
+                        .padding([.horizontal, .top])
+                        
+                        
+                        Spacer()
+                    }///.frame(height: UIScreen.main.bounds.size.height / 1.5)
+                    .background(Color.pink.opacity(0.05).padding(.top, -100))
+                    .cornerRadius(30)
+                    .padding([.top, .bottom], 20)
+                    
+                }
+            }
+            
+            //Spacer()
+            
+        }//.padding(.horizontal)
+        .frame(height: UIScreen.main.bounds.size.height)
+        .ignoresSafeArea(.all, edges: .all)
+        .background(Color.white)
+    }
+}
+
+
+struct ColorButton: View {
+    var color: Color
+    @Binding var selectedColor: Color
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(color)
+                .frame(width: 20, height: 20)
+            
+            Circle()
+                .stroke(Color.black.opacity(selectedColor == color ? 1: 0))
+                .frame(width: 25, height: 25)
+        }.onTapGesture {
+            withAnimation {
+                selectedColor = color
+            }
+        }
     }
 }
 
