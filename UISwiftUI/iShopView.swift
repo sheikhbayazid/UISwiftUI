@@ -11,17 +11,19 @@ struct iShopView: View {
     @State private var selectedItem: Product!
     @State private var isActive = false
     @Namespace var animation
+    @State private var count = 0
+    @State private var cartItem = 0
     
     var body: some View {
         ZStack {
             VStack {
-                HeaderView()
+                HeaderView(count: $count, cartItem: $cartItem)
                 
                 ProductView(selectedItem: $selectedItem, isActive: $isActive)
             }
             
             if isActive && selectedItem != nil  {
-                ItemDetailsView(product: $selectedItem, isActive: $isActive)
+                ItemDetailsView(product: $selectedItem, isActive: $isActive, count: $count, cartItem: $cartItem)
             }
         }.ignoresSafeArea(.all, edges: .top)
     }
@@ -31,13 +33,19 @@ struct iShopView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             iShopView()
-            ItemDetailsView(product: .constant(Product.example[1]), isActive: .constant(false))
+            ItemDetailsView(product: .constant(Product.example[1]), isActive: .constant(false), count: .constant(0), cartItem: .constant(0))
+            CartView()
+            CheckoutView()
         }
     }
 }
 
 //MARK: - HeaderView
 struct HeaderView: View {
+    @Binding var count: Int
+    @Binding var cartItem: Int
+    @State private var isCartShown = false
+    
     var body: some View {
         ZStack {
             HStack(spacing: 15) {
@@ -53,14 +61,25 @@ struct HeaderView: View {
                     })
                     
                     ZStack(alignment: Alignment(horizontal: .trailing, vertical: .top)) {
-                        Button(action: {}, label: {
+                        Button(action: {self.isCartShown.toggle()}, label: {
                             Image(systemName: "cart")
                         })
+                        .sheet(isPresented: $isCartShown) {
+                            CartView()
+                        }
                         
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 15, height: 15)
+                        if cartItem > 0 {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red)
+                                Text("\(cartItem)")
+                                    .font(.footnote)
+                                    //.fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
+                            .frame(width: 18, height: 18)
                             .offset(x: 5, y: -5)
+                        }
                     }
                 }
             }
@@ -93,7 +112,7 @@ fileprivate struct TabButtonView: View {
                 selectedTab = title
             }
         }, label: {
-            VStack(alignment: .center) {
+            VStack(alignment: .center, spacing: 3) {
                 Text(title)
                     .font(.system(size: selectedTab == title ? 14 : 11))
                     .fontWeight(.bold)
@@ -103,7 +122,7 @@ fileprivate struct TabButtonView: View {
                 ZStack {
                     Capsule()
                         .fill(Color.clear)
-                        .frame(width: 35, height: 4)
+                        .frame(width: 35, height: 3)
                     if selectedTab == title {
                         Capsule()
                             .fill(Color.primary)
@@ -113,6 +132,7 @@ fileprivate struct TabButtonView: View {
                 }
                 
             }.padding(.horizontal, 5)
+            .padding(.bottom, 10)
         })
     }
 }
@@ -191,11 +211,12 @@ fileprivate struct ItemView: View {
                 Image(product.image)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 100, height: 100)
+                    .frame(width: 90, height: 90)
+                    .offset(y: 5)
             }
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(product.name)
+                Text(product.title)
                     .font(.system(size: 14))
                     .fontWeight(.regular)
                     .foregroundColor(.secondary)
@@ -203,12 +224,13 @@ fileprivate struct ItemView: View {
                 Text("৳\(product.price)")
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                    .padding(.bottom, 10)
-            }.padding(.horizontal)
+            }.frame(height: 50, alignment: .center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .background(Color.white.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: 15))
             
-        }.frame(width: 170, height: 160)
-        
-        .background(Color.purple.opacity(0.05))
+        }.frame(width: 150, height: 160)
+        .background(product.color)
         .clipShape(RoundedRectangle(cornerRadius: 15))
     }
 }
@@ -219,6 +241,9 @@ fileprivate struct ItemDetailsView: View {
     @Binding var isActive: Bool
     //var animation: Namespace.ID
     @State private var color = Color.green
+    @State private var isTapped = false
+    @Binding var count: Int
+    @Binding var cartItem: Int
     
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -233,13 +258,26 @@ fileprivate struct ItemDetailsView: View {
                             Image(systemName: "chevron.left")
                         })
                         
-                        
-                        
                         Spacer()
                         
-                        Button(action: {}, label: {
-                            Image(systemName: "cart")
-                        })
+                        ZStack(alignment: Alignment(horizontal: .trailing, vertical: .top)) {
+                            Button(action: {}, label: {
+                                Image(systemName: "cart")
+                            })
+                            
+                            if cartItem > 0 {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.red)
+                                    Text("\(cartItem)")
+                                        .font(.footnote)
+                                        //.fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+                                .frame(width: 18, height: 18)
+                                .offset(x: 5, y: -5)
+                            }
+                        }
                     }
                     .font(.system(size: 24, weight: .medium))
                     .foregroundColor(.primary)
@@ -248,11 +286,11 @@ fileprivate struct ItemDetailsView: View {
                     
                     //MARK: - HeaderView
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(product.name)
+                        Text(product.brand)
                             .fontWeight(.semibold)
                             .padding(.top )
                         
-                        Text(product.name)
+                        Text(product.title)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                     }
@@ -260,52 +298,54 @@ fileprivate struct ItemDetailsView: View {
                     
                     
                     //MARK: - ImageView and Price
-                    HStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Price")
-                                .fontWeight(.semibold)
-                                .foregroundColor(.primary)
-                            
-                            Text("$\(product.price)")
-                                .fontWeight(.heavy)
-                                .foregroundColor(.primary)
-                        }
-                        
+                    VStack {
                         Image(product.image)
                             .resizable()
                             .scaledToFit()
                             .shadow(radius: 6, y: 3)
-                            .frame(width: 220, height: 220)
+                            .frame(width: 300, height: 200)
+                            .frame(maxWidth: .infinity, alignment: .center)
                         //.matchedGeometryEffect(id: product.image, in: animation)
-                    }.padding(.horizontal)
-                    .padding(.top)
+                    }
                     
                     
                     VStack(alignment: .leading) {
                         VStack(alignment: .leading) {
                             HStack {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Color")
-                                        .foregroundColor(.gray)
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text("Price")
+                                        //.fontWeight(.medium)
+                                        .foregroundColor(.primary)
                                     
-                                    HStack(spacing: 10) {
-                                        ColorButton(color: Color.green, selectedColor: $color)
-                                        ColorButton(color: Color.yellow, selectedColor: $color)
-                                        ColorButton(color: Color.purple, selectedColor: $color)
-                                    }
+                                    Text("৳\(product.price)")
+                                        .fontWeight(.heavy)
+                                        .foregroundColor(.primary)
                                 }
                                 
                                 Spacer()
                                 
-                                VStack(spacing: 8) {
-                                    Text("Size")
+                                VStack(spacing: 5) {
+                                    Text("Shipping")
                                         .foregroundColor(.gray)
                                     
                                     
-                                    Text("12cm")
-                                        .fontWeight(.semibold)
+                                    Text(product.estimateShipping)
+                                        .fontWeight(.medium)
+                                }
+                            }.padding(.vertical)
+                            
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Color")
+                                    .foregroundColor(.gray)
+                                
+                                HStack(spacing: 10) {
+                                    ColorButton(color: Color.green, selectedColor: $color)
+                                    ColorButton(color: Color.yellow, selectedColor: $color)
+                                    ColorButton(color: Color.purple, selectedColor: $color)
                                 }
                             }
+                            
                             
                             Text(product.description)
                                 .font(.callout)
@@ -313,23 +353,33 @@ fileprivate struct ItemDetailsView: View {
                                 .padding(.top)
                             
                             HStack {
-                                HStack(spacing: 15) {
+                                HStack(spacing: 10) {
                                     Image(systemName: "minus")
                                         .frame(width: 30, height: 20)
                                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 1))
+                                        .onTapGesture {
+                                            if count > 0 {
+                                                count -= 1
+                                            }
+                                        }
                                     
-                                     Text("2")
-                                    
+                                    Text("\(count)")
+                                        .frame(width: 25)
                                     Image(systemName: "plus")
                                         .frame(width: 30, height: 20)
                                         .overlay(RoundedRectangle(cornerRadius: 2).stroke(lineWidth: 1))
-                                    
+                                        .onTapGesture {
+                                            count += 1
+                                        }
                                 }
                                 
                                 Spacer()
                                 
-                                Circle().fill(Color.red).frame(width: 35, height: 35)
-                                    .overlay(Image(systemName: "heart.fill").foregroundColor(Color.white))
+                                Circle().fill(isTapped ? Color.red : Color.black.opacity(0.8)).frame(width: 30, height: 30)
+                                    .overlay(Image(systemName: "heart.fill").foregroundColor(Color.white).font(.system(size: 17, weight: .medium)))
+                                    .onTapGesture {
+                                        self.isTapped.toggle()
+                                    }
                                 
                                 
                             }.padding(.top)
@@ -338,18 +388,22 @@ fileprivate struct ItemDetailsView: View {
                         }.padding(.horizontal)
                         .padding(.top, 20)
                         
-                        Button(action: {}, label: {
-                            Text("BUY NOW")
+                        Button(action: {
+                            withAnimation { self.cartItem = count }
+                        }, label: {
+                            Text("ADD TO CART")
                                 .foregroundColor(.white)
-                        }).frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
-                        .background(Color.blue)
-                        .cornerRadius(15)
-                        .padding([.horizontal, .top])
+                                .font(.system(size: 17, weight: .semibold))
+                                .frame(maxWidth: .infinity, maxHeight: 45, alignment: .center)
+                                .background(Color.black)
+                                .clipShape(RoundedRectangle(cornerRadius: 15))
+                                .padding([.horizontal, .top])
+                        })
                         
                         
                         Spacer()
                     }///.frame(height: UIScreen.main.bounds.size.height / 1.5)
-                    .background(Color.pink.opacity(0.05).padding(.top, -100))
+                    .background(Color.white.padding(.top, -100)) //Color.pink.opacity(0.05).padding(.top, -100)
                     .cornerRadius(30)
                     .padding([.top, .bottom], 20)
                     
@@ -360,8 +414,8 @@ fileprivate struct ItemDetailsView: View {
             
         }//.padding(.horizontal)
         .frame(height: UIScreen.main.bounds.size.height)
+        .background(product.color)
         .ignoresSafeArea(.all, edges: .all)
-        .background(Color.white)
     }
 }
 
@@ -387,11 +441,282 @@ struct ColorButton: View {
     }
 }
 
+
+fileprivate struct CartItemView: View {
+    fileprivate let product: Product
+    @State private var numberOfItem = 1
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack(spacing: 10) {
+                Image(product.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40 , height: 40)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(product.title)
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("৳\(product.price)")
+                        .font(.system(size: 13, weight: .semibold))
+                    //.foregroundColor(.blue)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 2) {
+                    Button(action: {
+                        if numberOfItem > 0 {
+                            numberOfItem -= 1
+                        }
+                    }, label: {
+                        Image(systemName: "minus")
+                            .frame(width: 23, height: 17)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 1).foregroundColor(.gray))
+                    })
+                    
+                    
+                    Text("\(numberOfItem)")
+                        .frame(width: 25)
+                    
+                    Button(action: {
+                        numberOfItem += 1
+                    }, label: {
+                        Image(systemName: "plus")
+                            .frame(width: 23, height: 17)
+                            .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 1).foregroundColor(.gray))
+                    })
+                }.font(.system(size: 13, weight: .medium))
+                .foregroundColor(.primary)
+                .padding(.horizontal)
+                
+            }
+            .frame(width: 350 , height: 46)
+            .background(Color.secondary.opacity(0.075))
+            .clipShape(RoundedRectangle(cornerRadius: 8))        }
+    }
+}
+
+
+
+fileprivate struct CartView: View {
+    @Environment(\.presentationMode) var presentationMode
+    fileprivate let products:[Product] = Product.cart
+    
+    @State private var totalPrice = 0
+    @State private var isCheckoutShown = false
+    
+    var background: LinearGradient {
+        return LinearGradient(gradient: Gradient(colors: [Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1)), Color(#colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)), Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1))]), startPoint: .leading, endPoint: .trailing)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        ForEach(products) { product in
+                            CartItemView(product: product)
+                                .onAppear {
+                                    self.totalPrice = product.price
+                                }
+                        }
+                    }
+                }.offset(y: 30)
+                
+                VStack {
+                    Rectangle()
+                        .fill(Color.clear)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Shipping: Free")
+                                .font(.footnote)
+                                .foregroundColor(.gray)
+                            HStack {
+                                Text("Total:")
+                                    .font(.system(size: 15, weight: .medium))
+                                Text("৳\(totalPrice)")
+                                    .font(.system(size: 18, weight: .semibold))
+                                //.foregroundColor(.blue)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            self.isCheckoutShown.toggle()
+                        }, label: {
+                            Text("Check Out")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.black)
+                                .clipShape(Capsule())
+                                .shadow(radius: 2, y: 1)
+                        }).sheet(isPresented: $isCheckoutShown) {
+                            CheckoutView()
+                        }
+                    }.padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(Color.secondary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal)
+                }
+            }.navigationTitle("Cart items")
+            .navigationBarItems(trailing: Button("Cancel") { self.presentationMode.wrappedValue.dismiss()}.foregroundColor(.primary) )
+        }
+    }
+}
+
+
+
+fileprivate struct CheckoutView: View {
+    @Environment(\.presentationMode) var presentationMode
+    
+    @State private var isTapped = false
+    @State private var addressLine = ""
+    @State private var city = ""
+    @State private var postalCode = ""
+    
+    var background: LinearGradient {
+        return LinearGradient(gradient: Gradient(colors: [Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1)), Color(#colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)), Color(#colorLiteral(red: 0.9399157139, green: 0.9614128444, blue: 1, alpha: 1))]), startPoint: .leading, endPoint: .trailing)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                VStack(alignment: .leading, spacing: 30) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Cell:")
+                                .font(.headline)
+                            
+                            Text("Phone: +8801710000000")
+                                .font(.footnote)
+                                .padding(.horizontal, 10)
+                                .background(Color.black.opacity(0.05))
+                                .cornerRadius(5)
+                            
+                        }.font(.system(size: 15, weight: .medium))
+                        .padding(.bottom, 20)
+                        
+                        Text("Biling Address:")
+                            .font(.headline)
+                        
+                        VStack(alignment: .leading, spacing: 5) {
+                            TextField("address", text: $addressLine)
+                                .padding(4)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                            
+                            TextField("city", text: $city)
+                                .padding(5)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                            
+                            TextField("postal code", text: $postalCode)
+                                .padding(5)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                            
+                            HStack {
+                                Button(action: {
+                                    withAnimation {
+                                        self.isTapped.toggle()
+                                        
+                                        if isTapped {
+                                            self.addressLine = "123, ABC Avenue"
+                                            self.city = "ABC"
+                                            self.postalCode = "00-11-22"
+                                        } else {
+                                            self.addressLine = ""
+                                            self.city = ""
+                                            self.postalCode = ""
+                                        }
+                                    }
+                                    
+                                }, label: {
+                                    Image(systemName: isTapped ? "checkmark.circle" : "circle")
+                                        .font(.title3)
+                                        .foregroundColor(.primary)
+                                })
+                                
+                                Text("Use account address")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.gray)
+                            }.padding(.vertical, 10)
+                            .font(.footnote)
+                        }
+                        
+                    }.font(.system(size: 14))
+                    
+                    
+                    VStack(alignment: .leading) {
+                        Text("Summary:")
+                            .font(.headline)
+                        
+                        VStack(spacing: 4) {
+                            ForEach(Product.cart) { product in
+                                CartItemView(product: product)
+                                
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                }.padding(.top, 20)
+                .padding(.horizontal)
+                
+                VStack {
+                    Rectangle()
+                        .fill(Color.clear)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("Total: ")
+                                    .font(.system(size: 15, weight: .regular))
+                                Text("৳1,45000")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.primary)
+                            }
+                            
+                            Text("VAT and SD included")
+                                .font(.footnote)
+                                .foregroundColor(.gray)
+                            
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: { }, label: {
+                            Text("Proceed to Pay")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.black)
+                                .clipShape(Capsule())
+                                .shadow(radius: 2, y: 1)
+                        })
+                    }.padding(.horizontal, 15)
+                    .padding(.vertical, 10)
+                    .background(Color.black.opacity(0.07))
+                    .cornerRadius(10)
+                }.padding(.horizontal)
+            }
+            .navigationBarTitle("Checkout")
+            .navigationBarItems(trailing: Button("Cancel") { self.presentationMode.wrappedValue.dismiss()}.foregroundColor(.primary) )
+        }
+    }
+}
+
 //MARK: - Model
 fileprivate struct Product: Identifiable {
     let id = UUID()
     let image: String
-    let name: String
+    let title: String
+    let brand: String
+    let color: Color
     let price: Int
     let estimateShipping: String
     let dayAndWeek: String
@@ -399,28 +724,28 @@ fileprivate struct Product: Identifiable {
     let type = "Technology"
     
     static let example: [Product] = [
-        Product(image: "ipad-pro-21", name: "M1 iPad Pro", price: 1_10000, estimateShipping: "This Week", dayAndWeek: "W"),
-        Product(image: "imac-21", name: "M1 iMac", price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
-        Product(image: "airtag", name: "Airtags", price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W"),
-        Product(image: "iphone-12", name: "iPhone 12 Purple", price: 1_10000, estimateShipping: "Tomorrow", dayAndWeek: "D"),
-        Product(image: "yeezy-500", name: "Yeezy Boost 500", price: 27_000, estimateShipping: "Today", dayAndWeek: "D"),
-        Product(image: "bmw", name: "BMW i8", price: 50_00000, estimateShipping: "Next Week", dayAndWeek: "W"),
-        Product(image: "ps5", name: "PS5", price: 6_0000, estimateShipping: "Today", dayAndWeek: "D"),
-        Product(image: "canon5d", name: "Canon EOS 5D Mark IV", price: 1_20000, estimateShipping: "Tomorrow", dayAndWeek: "W"),
-        Product(image: "apple-watch-6", name: "Apple Watch Series 6", price: 4_5000, estimateShipping: "Today", dayAndWeek: "D,W"),
-        Product(image: "vespa-2", name: "Vespa 2", price: 1_55000, estimateShipping: "Next Week", dayAndWeek: "W")
+        Product(image: "yeezy-500", title: "Yeezy Boost 500", brand: "Adidas", color: Color(#colorLiteral(red: 0.5974173546, green: 0.6317743659, blue: 0.6106539369, alpha: 1)), price: 27_000, estimateShipping: "Today", dayAndWeek: "D"),
+        Product(image: "iphone-12", title: "iPhone 12 Purple", brand: "Apple", color: Color(#colorLiteral(red: 0.8154860139, green: 0.7859579921, blue: 0.8829900622, alpha: 1)), price: 1_10000, estimateShipping: "Tomorrow", dayAndWeek: "D"),
+        Product(image: "ipad-pro-21", title: "M1 iPad Pro", brand: "Apple", color: Color(#colorLiteral(red: 0.9803065658, green: 0.9804469943, blue: 0.9802758098, alpha: 1)), price: 1_10000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "imac-21-1", title: "M1 iMac", brand: "Apple", color: Color(#colorLiteral(red: 0.979149878, green: 0.935824275, blue: 1, alpha: 1)), price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "airtag", title: "Airtags", brand: "Apple", color: Color(#colorLiteral(red: 0.8861966729, green: 0.8863243461, blue: 0.8861686587, alpha: 1)), price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W"),
+        Product(image: "bmw", title: "Model i8", brand: "BMW", color: Color(#colorLiteral(red: 0.6916418672, green: 0.0513773039, blue: 0.08828204125, alpha: 1)), price: 50_00000, estimateShipping: "Next Week", dayAndWeek: "W"),
+        Product(image: "ps5", title: "PS5", brand: "Sony", color: Color(#colorLiteral(red: 0.5266396999, green: 0.5377212167, blue: 0.969317615, alpha: 1)), price: 6_0000, estimateShipping: "Today", dayAndWeek: "D"),
+        Product(image: "canon5d", title: "EOS 5D Mark IV", brand: "Canon", color: Color(#colorLiteral(red: 0.1651098132, green: 0.1681086421, blue: 0.1892572641, alpha: 1)), price: 1_20000, estimateShipping: "Tomorrow", dayAndWeek: "W"),
+        Product(image: "apple-watch-6", title: "Watch Series 6", brand: "Apple", color: Color(#colorLiteral(red: 0.2075617015, green: 0.2041387558, blue: 0.1955869496, alpha: 1)), price: 4_5000, estimateShipping: "Today", dayAndWeek: "D,W"),
+        Product(image: "vespa-2", title: "Model 2", brand: "Vespa", color: Color(#colorLiteral(red: 0.3970476985, green: 0.4470000863, blue: 0.5866626501, alpha: 1)), price: 1_55000, estimateShipping: "Next Week", dayAndWeek: "W")
     ]
     
     static let favorites: [Product] = [
-        Product(image: "iphone-12", name: "iPhone 12 Pro Max", price: 1_10000, estimateShipping: "Today", dayAndWeek: "D"),
-        Product(image: "imac-21", name: "M1 iMac", price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
-        Product(image: "airtag", name: "Airtags", price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W")
+        Product(image: "iphone-12", title: "iPhone 12 Purple", brand: "Apple", color: Color(#colorLiteral(red: 0.8154860139, green: 0.7859579921, blue: 0.8829900622, alpha: 1)), price: 1_10000, estimateShipping: "Tomorrow", dayAndWeek: "D"),
+        Product(image: "imac-21-1", title: "M1 iMac", brand: "Apple", color: Color(#colorLiteral(red: 0.979149878, green: 0.935824275, blue: 1, alpha: 1)), price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "airtag", title: "Airtags", brand: "Apple", color: Color(#colorLiteral(red: 0.8861966729, green: 0.8863243461, blue: 0.8861686587, alpha: 1)), price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W")
     ]
     
     static let cart: [Product] = [
-        Product(image: "imac-21", name: "M1 iMac", price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
-        Product(image: "airtag", name: "Airtags", price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W"),
-        Product(image: "iphone-12", name: "iPhone 12 Purple", price: 1_10000, estimateShipping: "Today", dayAndWeek: "D")
+        Product(image: "ipad-pro-21", title: "M1 iPad Pro", brand: "Apple", color: Color(#colorLiteral(red: 0.9803065658, green: 0.9804469943, blue: 0.9802758098, alpha: 1)), price: 1_10000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "imac-21-1", title: "M1 iMac", brand: "Apple", color: Color(#colorLiteral(red: 0.979149878, green: 0.935824275, blue: 1, alpha: 1)), price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "airtag", title: "Airtags", brand: "Apple", color: Color(#colorLiteral(red: 0.8861966729, green: 0.8863243461, blue: 0.8861686587, alpha: 1)), price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W")
     ]
 }
 
