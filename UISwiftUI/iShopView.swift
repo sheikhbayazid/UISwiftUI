@@ -19,11 +19,11 @@ struct iShopView: View {
             VStack {
                 HeaderView(count: $count, cartItem: $cartItem)
                 
-                ProductView(selectedItem: $selectedItem, isActive: $isActive)
+                RecentProductsView(selectedItem: $selectedItem, isActive: $isActive)
             }
             
             if isActive && selectedItem != nil  {
-                ItemDetailsView(product: $selectedItem, isActive: $isActive, count: $count, cartItem: $cartItem)
+                ItemDetailsView(product: $selectedItem, isActive: $isActive, animation: animation, count: $count, cartItem: $cartItem)
             }
         }.ignoresSafeArea(.all, edges: .top)
     }
@@ -33,10 +33,44 @@ struct iShopView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             iShopView()
-            ItemDetailsView(product: .constant(Product.example[1]), isActive: .constant(false), count: .constant(0), cartItem: .constant(0))
+            //ItemDetailsView(product: .constant(Product.example[1]), isActive: .constant(false), count: .constant(0), cartItem: .constant(0))
             CartView()
             CheckoutView()
         }
+    }
+}
+
+fileprivate struct SearchView: View {
+    @State private var search = ""
+    @Binding var isSearchShown: Bool
+    
+    var body: some View {
+        HStack {
+            HStack {
+                Button(action: { isSearchShown.toggle() }, label: {
+                    Image(systemName: "magnifyingglass")
+                })
+                
+                TextField("Search", text: $search, onCommit: searchItem)
+                
+            }
+            
+            Button(action: { isSearchShown.toggle() }, label: {
+                Image(systemName: "qrcode.viewfinder")
+                    
+            })
+        }.font(.title3)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 15)
+        .background(Color.white)
+        .cornerRadius(10)
+        
+        
+        
+    }
+    
+    func searchItem() {
+        self.isSearchShown.toggle()
     }
 }
 
@@ -44,7 +78,9 @@ struct iShopView_Previews: PreviewProvider {
 struct HeaderView: View {
     @Binding var count: Int
     @Binding var cartItem: Int
+    
     @State private var isCartShown = false
+    @State private var isSearchShown = false
     
     var body: some View {
         ZStack {
@@ -56,12 +92,12 @@ struct HeaderView: View {
                 Spacer(minLength: 0)
                 
                 HStack(spacing: 15) {
-                    Button(action: {}, label: {
+                    Button(action: { self.isSearchShown.toggle() }, label: {
                         Image(systemName: "magnifyingglass")
                     })
                     
                     ZStack(alignment: Alignment(horizontal: .trailing, vertical: .top)) {
-                        Button(action: {self.isCartShown.toggle()}, label: {
+                        Button(action: { self.isCartShown.toggle() }, label: {
                             Image(systemName: "cart")
                         })
                         .sheet(isPresented: $isCartShown) {
@@ -87,12 +123,16 @@ struct HeaderView: View {
             Text("iShop")
                 .font(.system(size: 26, weight: .medium))
             
+            if isSearchShown {
+                SearchView(isSearchShown: $isSearchShown)
+            }
+            
         }.font(.system(size: 24, weight: .medium))
         .foregroundColor(.primary)
         .padding()
         .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top)
         //.background(Color.white)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2.5)
+        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
     }
     
     
@@ -139,7 +179,7 @@ fileprivate struct TabButtonView: View {
 
 
 //MARK: - ProductView
-fileprivate struct ProductView: View {
+fileprivate struct RecentProductsView: View {
     @State private var selectedTab = scrollTabs[0]
     @Binding var selectedItem: Product!
     @Namespace var animation
@@ -188,7 +228,7 @@ fileprivate struct AllProductsView: View {
                 ForEach(products) { product in
                     ItemView(product: product)
                         .onTapGesture {
-                            //withAnimation(.spring()) {
+                            //withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                             self.selectedItem = product
                             self.isActive.toggle()
                             //}
@@ -211,7 +251,7 @@ fileprivate struct ItemView: View {
                 Image(product.image)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 90, height: 90)
+                    .frame(width: 100, height: 100)
                     .offset(y: 5)
             }
             
@@ -224,12 +264,13 @@ fileprivate struct ItemView: View {
                 Text("৳\(product.price)")
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-            }.frame(height: 50, alignment: .center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }.frame(height: 45, alignment: .center)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .padding(.horizontal)
             .background(Color.white.opacity(0.5))
             .clipShape(RoundedRectangle(cornerRadius: 15))
             
-        }.frame(width: 150, height: 160)
+        }.frame(width: 160, height: 160)
         .background(product.color)
         .clipShape(RoundedRectangle(cornerRadius: 15))
     }
@@ -239,11 +280,13 @@ fileprivate struct ItemView: View {
 fileprivate struct ItemDetailsView: View {
     @Binding var product: Product!
     @Binding var isActive: Bool
-    //var animation: Namespace.ID
+    var animation: Namespace.ID
     @State private var color = Color.green
     @State private var isTapped = false
     @Binding var count: Int
     @Binding var cartItem: Int
+    
+    @State private var isCartShown = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -261,9 +304,12 @@ fileprivate struct ItemDetailsView: View {
                         Spacer()
                         
                         ZStack(alignment: Alignment(horizontal: .trailing, vertical: .top)) {
-                            Button(action: {}, label: {
+                            Button(action: { self.isCartShown.toggle() }, label: {
                                 Image(systemName: "cart")
                             })
+                            .sheet(isPresented: $isCartShown) {
+                                CartView()
+                            }
                             
                             if cartItem > 0 {
                                 ZStack {
@@ -305,7 +351,7 @@ fileprivate struct ItemDetailsView: View {
                             .shadow(radius: 6, y: 3)
                             .frame(width: 300, height: 200)
                             .frame(maxWidth: .infinity, alignment: .center)
-                        //.matchedGeometryEffect(id: product.image, in: animation)
+                        .matchedGeometryEffect(id: product.image, in: animation)
                     }
                     
                     
@@ -571,6 +617,38 @@ fileprivate struct CartView: View {
 }
 
 
+fileprivate struct CheckoutItems: View {
+    fileprivate let product: Product
+    @State private var numberOfItem = 1
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            HStack(spacing: 10) {
+                Image(product.image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40 , height: 40)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(product.title)
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("৳\(product.price)")
+                        .font(.system(size: 13, weight: .semibold))
+                    //.foregroundColor(.blue)
+                }
+                
+                Spacer()
+                
+                Text("1 X")
+                    .font(.system(size: 13, weight: .semibold))
+                    .padding(.horizontal)
+                
+            }
+            .frame(width: 350 , height: 46)
+            .background(Color.secondary.opacity(0.075))
+            .clipShape(RoundedRectangle(cornerRadius: 8))        }
+    }
+}
 
 fileprivate struct CheckoutView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -609,15 +687,15 @@ fileprivate struct CheckoutView: View {
                         VStack(alignment: .leading, spacing: 5) {
                             TextField("address", text: $addressLine)
                                 .padding(4)
-                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.25))
                             
                             TextField("city", text: $city)
                                 .padding(5)
-                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.25))
                             
                             TextField("postal code", text: $postalCode)
                                 .padding(5)
-                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.5))
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(lineWidth: 0.25))
                             
                             HStack {
                                 Button(action: {
@@ -652,12 +730,12 @@ fileprivate struct CheckoutView: View {
                     
                     
                     VStack(alignment: .leading) {
-                        Text("Summary:")
+                        Text("Order Summary:")
                             .font(.headline)
                         
                         VStack(spacing: 4) {
                             ForEach(Product.cart) { product in
-                                CartItemView(product: product)
+                                CheckoutItems(product: product)
                                 
                             }
                         }
@@ -725,10 +803,10 @@ fileprivate struct Product: Identifiable {
     
     static let example: [Product] = [
         Product(image: "yeezy-500", title: "Yeezy Boost 500", brand: "Adidas", color: Color(#colorLiteral(red: 0.5974173546, green: 0.6317743659, blue: 0.6106539369, alpha: 1)), price: 27_000, estimateShipping: "Today", dayAndWeek: "D"),
-        Product(image: "iphone-12", title: "iPhone 12 Purple", brand: "Apple", color: Color(#colorLiteral(red: 0.8154860139, green: 0.7859579921, blue: 0.8829900622, alpha: 1)), price: 1_10000, estimateShipping: "Tomorrow", dayAndWeek: "D"),
         Product(image: "ipad-pro-21", title: "M1 iPad Pro", brand: "Apple", color: Color(#colorLiteral(red: 0.9803065658, green: 0.9804469943, blue: 0.9802758098, alpha: 1)), price: 1_10000, estimateShipping: "This Week", dayAndWeek: "W"),
-        Product(image: "imac-21-1", title: "M1 iMac", brand: "Apple", color: Color(#colorLiteral(red: 0.979149878, green: 0.935824275, blue: 1, alpha: 1)), price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
         Product(image: "airtag", title: "Airtags", brand: "Apple", color: Color(#colorLiteral(red: 0.8861966729, green: 0.8863243461, blue: 0.8861686587, alpha: 1)), price: 3_000, estimateShipping: "Today", dayAndWeek: "D,W"),
+        Product(image: "imac-21-1", title: "M1 iMac", brand: "Apple", color: Color(#colorLiteral(red: 0.979149878, green: 0.935824275, blue: 1, alpha: 1)), price: 1_45000, estimateShipping: "This Week", dayAndWeek: "W"),
+        Product(image: "iphone-12", title: "iPhone 12 Purple", brand: "Apple", color: Color(#colorLiteral(red: 0.8154860139, green: 0.7859579921, blue: 0.8829900622, alpha: 1)), price: 1_10000, estimateShipping: "Tomorrow", dayAndWeek: "D"),
         Product(image: "bmw", title: "Model i8", brand: "BMW", color: Color(#colorLiteral(red: 0.6916418672, green: 0.0513773039, blue: 0.08828204125, alpha: 1)), price: 50_00000, estimateShipping: "Next Week", dayAndWeek: "W"),
         Product(image: "ps5", title: "PS5", brand: "Sony", color: Color(#colorLiteral(red: 0.5266396999, green: 0.5377212167, blue: 0.969317615, alpha: 1)), price: 6_0000, estimateShipping: "Today", dayAndWeek: "D"),
         Product(image: "canon5d", title: "EOS 5D Mark IV", brand: "Canon", color: Color(#colorLiteral(red: 0.1651098132, green: 0.1681086421, blue: 0.1892572641, alpha: 1)), price: 1_20000, estimateShipping: "Tomorrow", dayAndWeek: "W"),
