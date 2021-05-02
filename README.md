@@ -6,6 +6,9 @@
 <a href='https://ko-fi.com/E1E74CUIB' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ---
+## Onboarding Screen
+![onboarding](https://user-images.githubusercontent.com/44797746/116824042-d5d10480-aba9-11eb-9180-4d523b696940.gif)
+
 ## Parallax Effect
 ![Screen Recording 2021-05-02 at 1 52 09 AM](https://user-images.githubusercontent.com/44797746/116793579-57ad2900-aae9-11eb-8818-302fc30f1d70.gif)
 
