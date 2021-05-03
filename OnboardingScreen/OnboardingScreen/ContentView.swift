@@ -15,7 +15,7 @@ struct ContentView: View {
             TabView {
                 Text("Home")
                     .tabItem {
-                        Image(systemName: "house")
+                        Image(systemName: "house.fill")
                         Text("Home")
                     }
                 
@@ -27,10 +27,10 @@ struct ContentView: View {
                 
                 Text("Settings")
                     .tabItem {
-                        Image(systemName: "gearshape")
+                        Image(systemName: "gearshape.fill")
                         Text("Settings")
                     }
-            }.accentColor(Color(#colorLiteral(red: 0.986761868, green: 0.6856738329, blue: 0.3046730459, alpha: 1)))
+            }.accentColor(.primary)
             
             if isOnboarding {
                 ZStack {

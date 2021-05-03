@@ -28,21 +28,21 @@ struct OnboardingView: View {
                         .padding(.bottom)
                     
                     Text(item.title)
-                        .font(.system(size: 35, weight: .semibold))
+                        .font(.system(size: 30, weight: .semibold))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
                     Text(item.description)
-                        .font(.system(size: 18, weight: .light))
+                        .font(.system(size: 16, weight: .light))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
-                    VStack {
+                    HStack {
                         if item.isLast {
                             if isShowing {
                                 Button(action: {
                                     withAnimation(.easeInOut(duration: 0.2)) {
-                                        isOnboarding = false
+                                       isOnboarding = false
                                     }
                                     
                                 }, label: {
@@ -55,6 +55,14 @@ struct OnboardingView: View {
                                         .padding(.vertical, 30)
                                 })
                             }
+                        } else {
+                            Spacer()
+                            
+                            Image(systemName: "arrow.forward.circle.fill")
+                                .font(.system(size: 25, weight: .semibold))
+                                .foregroundColor(.black)
+                                .padding(.vertical)
+                            
                         }
                     }
                     .foregroundColor(.white)

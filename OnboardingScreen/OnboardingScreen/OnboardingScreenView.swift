@@ -25,7 +25,7 @@ struct OnboardingScreenView: View {
                     .tag(2)
             }
             .frame(width: g.size.width, height: g.size.height + yExtension)
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         }
         .offset(y: -yExtension)
         .edgesIgnoringSafeArea(.all)
