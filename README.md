@@ -7,7 +7,7 @@
 
 ---
 ## Onboarding Screen
-![onboarding](https://user-images.githubusercontent.com/44797746/116824042-d5d10480-aba9-11eb-9180-4d523b696940.gif)
+![onboarding](https://user-images.githubusercontent.com/44797746/116846892-2fb5e680-ac0b-11eb-9be4-47319c28f5fb.gif)
 
 ## Parallax Effect
 ![Screen Recording 2021-05-02 at 1 52 09 AM](https://user-images.githubusercontent.com/44797746/116793579-57ad2900-aae9-11eb-8818-302fc30f1d70.gif)
